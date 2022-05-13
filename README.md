@@ -9,6 +9,11 @@ chargedeployed_kritzkrieg<br/>
 chargedeployed_quickfix<br/>
 chargedeployed_vaccinator<br/>
 
+This plugin also adds the following new logged events that will trigger when a medic ubers an enemy spy.  This check is only done on normal medigun and when the uberchange is deployed.
+
+ubered_enemy_spy<br/>
+ubered_by_enemy_medic<br/>
+
 These can then be added as actions in gameme for tracking / points.
 
 In the event of an error or not being able to determine which charge type, the plugin will log a normal "chargedeployed" event.

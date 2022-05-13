@@ -2,7 +2,7 @@
 #pragma newdecls required
 
 #define PLUGIN_AUTHOR "ack"
-#define PLUGIN_VERSION "0.03"
+#define PLUGIN_VERSION "0.04"
 
 #include <sourcemod>
 #include <sdktools>
@@ -10,10 +10,10 @@
 #include <tf2_stocks>
 
 public Plugin myinfo = {
-	name = "eotl gameme uber types", 
-	author = PLUGIN_AUTHOR, 
-	description = "GameMe stats for each uber type", 
-	version = PLUGIN_VERSION, 
+	name = "eotl_gameme_uber_types",
+	author = PLUGIN_AUTHOR,
+	description = "GameMe stats for each uber type and ubering enemy spies",
+	version = PLUGIN_VERSION,
 	url = ""
 };
 
@@ -81,6 +81,7 @@ public Action EventUberDeployed(Handle event, const char[] name, bool dontBroadc
 		case 29, 211, 663, 796, 805, 885, 894, 903, 912, 961, 970, 15008, 15010, 15025, 15039, 15050, 15078, 15097, 15122, 15145, 15146:
 		{
 			LogToGame("\"%L\" triggered \"chargedeployed_medigun\"", client);
+			CheckEnemySpyUber(client);
 			g_dropNextMessage = true;
 		}
 
@@ -96,7 +97,7 @@ public Action EventUberDeployed(Handle event, const char[] name, bool dontBroadc
 		case 411:
 		{
 			LogToGame("\"%L\" triggered \"chargedeployed_quickfix\"", client);
-			g_dropNextMessage = true;		
+			g_dropNextMessage = true;
 		}
 		//   988 = The Vaccinator
 		//  5756 = Vaccinator Strangifier
@@ -111,10 +112,56 @@ public Action EventUberDeployed(Handle event, const char[] name, bool dontBroadc
 		{
 			LogMessage("player_chargedeployed client: %d weapon index: %d (Unknown), allowing normal logging", client, weaponIndex);
 		}
-	
+
 	}
 	return Plugin_Continue;
 }
+
+void CheckEnemySpyUber(int client) {
+	TFTeam medic_team, target_team;
+	TFClassType target_class;
+
+	int target = GetHealingTarget(client);
+	if(target <= 0) {
+		return;
+	}
+
+	medic_team = TF2_GetClientTeam(client);
+	target_team = TF2_GetClientTeam(target);
+
+	if(medic_team == target_team) {
+		return;
+	}
+
+	target_class = TF2_GetPlayerClass(target);
+	if(target_class != TFClass_Spy) {
+		return;
+	}
+
+	LogToGame("\"%L\" triggered \"ubered_enemy_spy\"", client);
+	LogToGame("\"%L\" triggered \"ubered_by_enemy_medic\"", target);
+}
+
+int GetHealingTarget(int client) {
+    char weaponClass[64];
+
+    int weaponEnt = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+    if(weaponEnt <= 0) {
+        return -1;
+    }
+
+    GetEntityNetClass(weaponEnt, weaponClass, sizeof(weaponClass));
+    if(!StrEqual(weaponClass, "CWeaponMedigun")) {
+        return -1;
+    }
+
+    if(!GetEntProp(weaponEnt, Prop_Send, "m_bHealing")) {
+        return -1;
+    }
+
+    return GetEntPropEnt(weaponEnt, Prop_Send, "m_hHealingTarget");
+}
+
 
 // this will allow us to drop the to be logged chargedeployed event, while still allowing
 // other plugins to get the actual event
