@@ -6,7 +6,6 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <sdkhooks>
 #include <tf2_stocks>
 
 public Plugin myinfo = {
@@ -161,7 +160,6 @@ int GetHealingTarget(int client) {
 
     return GetEntPropEnt(weaponEnt, Prop_Send, "m_hHealingTarget");
 }
-
 
 // this will allow us to drop the to be logged chargedeployed event, while still allowing
 // other plugins to get the actual event
